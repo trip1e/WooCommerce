@@ -1,0 +1,96 @@
+<div class="packetery-carrier-options-page">
+	<h2>{$carrier_data['data']['name']}</h2>
+
+	{var $form = $carrier_data['form']}
+	<form n:name=$form>
+
+		{php settings_fields('packetery')}
+
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row">
+					<label n:name=packetery-active />
+				</th>
+				<td>
+					<input n:name=packetery-active>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label n:name=packetery-name />
+				</th>
+				<td>
+					<input n:name=packetery-name>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label>{__( 'Weight rules', 'packetery' )}</label>
+				</th>
+				<td>
+					<table>
+						<tr>
+							<th scope="row">
+								<label n:name=packetery_weight_limits-0-weight />
+							</th>
+							<td>
+								<input n:name=packetery_weight_limits-0-weight>
+							</td>
+							<th scope="row">
+								<label n:name=packetery_weight_limits-0-price />
+							</th>
+							<td>
+								<input n:name=packetery_weight_limits-0-price>
+							</td>
+							<td>
+								<a href="">{__( 'Add weight rule', 'packetery' )}</a>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label>{__( 'COD surcharge rules', 'packetery' )}</label>
+				</th>
+				<td>
+					<table>
+						<tr>
+							<th scope="row">
+								<label n:name=packetery_surcharge_limits-0-order_price />
+							</th>
+							<td>
+								<input n:name=packetery_surcharge_limits-0-order_price>
+							</td>
+							<th scope="row">
+								<label n:name=packetery_surcharge_limits-0-surcharge />
+							</th>
+							<td>
+								<input n:name=packetery_surcharge_limits-0-surcharge>
+							</td>
+							<td>
+								<a href="">{__( 'Add COD surcharge rule', 'packetery' )}</a>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label n:name=packetery-free_shipping_limit />
+				</th>
+				<td>
+					<input n:name=packetery-free_shipping_limit>
+					<p>
+						{__( 'After exceeding this amount, shipping is free.', 'packetery' )}
+					</p>
+				</td>
+			</tr>
+		</table>
+
+		<p class="submit">
+			<input type="submit" name="submit" id="submit" value="{__( 'Save Changes' )}" class="button button-primary">
+		</p>
+
+	</form>
+</div>

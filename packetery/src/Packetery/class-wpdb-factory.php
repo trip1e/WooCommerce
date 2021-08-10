@@ -17,7 +17,7 @@ namespace Packetery;
 class Wpdb_Factory {
 
 	/**
-	 * Creates wpdb factory
+	 * Gets wpdb instance
 	 *
 	 * @return \wpdb
 	 */

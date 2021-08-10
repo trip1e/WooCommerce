@@ -10,6 +10,8 @@ declare( strict_types=1 );
 
 namespace Packetery\Options;
 
+use Packetery\Form_Factory;
+
 /**
  * Class Page
  *
@@ -32,14 +34,23 @@ class Page {
 	private $options_provider;
 
 	/**
+	 * Form factory.
+	 *
+	 * @var Form_Factory Form factory.
+	 */
+	private $form_factory;
+
+	/**
 	 * Plugin constructor.
 	 *
 	 * @param \Latte\Engine $latte_engine Latte_engine.
 	 * @param Provider      $options_provider Options provider.
+	 * @param Form_Factory  $form_factory Form factory.
 	 */
-	public function __construct( \Latte\Engine $latte_engine, Provider $options_provider ) {
+	public function __construct( \Latte\Engine $latte_engine, Provider $options_provider, Form_Factory $form_factory ) {
 		$this->latte_engine     = $latte_engine;
 		$this->options_provider = $options_provider;
+		$this->form_factory     = $form_factory;
 	}
 
 	/**
@@ -67,10 +78,7 @@ class Page {
 	 * @return \Nette\Forms\Form
 	 */
 	private function create_form(): \Nette\Forms\Form {
-		// todo move to FormFactory. Create FormFactory when multiple forms exist.
-		\Nette\Forms\Validator::$messages[ \Nette\Forms\Form::FILLED ] = __( 'This field is required!', 'packetery' );
-
-		$form = new \Nette\Forms\Form();
+		$form = $this->form_factory->create();
 		$form->setAction( 'options.php' );
 
 		$container = $form->addContainer( 'packetery' );

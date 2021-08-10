@@ -11,6 +11,7 @@ namespace Packetery;
 
 use Packetery\Carrier\Downloader;
 use Packetery\Carrier\Repository;
+use Packetery\Options\Country;
 
 /**
  * Class Plugin
@@ -51,16 +52,25 @@ class Plugin {
 	private $carrier_repository;
 
 	/**
+	 * Country options page.
+	 *
+	 * @var Country
+	 */
+	private $options_country;
+
+	/**
 	 * Plugin constructor.
 	 *
 	 * @param Options\Page $options_page Options page.
 	 * @param Repository   $carrier_repository Carrier repository.
 	 * @param Downloader   $carrier_downloader Carrier downloader object.
+	 * @param Country      $options_country Country options page.
 	 */
-	public function __construct( Options\Page $options_page, Repository $carrier_repository, Downloader $carrier_downloader ) {
+	public function __construct( Options\Page $options_page, Repository $carrier_repository, Downloader $carrier_downloader, Country $options_country ) {
 		$this->options_page       = $options_page;
 		$this->carrier_repository = $carrier_repository;
 		$this->carrier_downloader = $carrier_downloader;
+		$this->options_country    = $options_country;
 		$this->main_file_path     = PACKETERY_PLUGIN_DIR . '/packetery.php';
 	}
 
@@ -123,6 +133,7 @@ class Plugin {
 	 */
 	public function add_menu_pages(): void {
 		$this->options_page->register();
+		$this->options_country->register();
 	}
 
 	/**
@@ -177,7 +188,7 @@ class Plugin {
 	 * @return array
 	 */
 	public function plugin_action_links( array $links ): array {
-		$links[] = '<a href="' . esc_url( admin_url( 'admin.php?page=todo' ) ) . '" aria-label="' .
+		$links[] = '<a href="' . esc_url( admin_url( 'admin.php?page=packeta-options' ) ) . '" aria-label="' .
 					esc_attr__( 'View Packeta settings', 'packetery' ) . '">' .
 					esc_html__( 'Settings', 'packetery' ) . '</a>';
 

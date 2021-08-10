@@ -13,3 +13,5 @@ services:
 	guzzle_client: GuzzleHttp\Client
 	wpdb_factory: Packetery\Wpdb_Factory
 	wpdb: @wpdb_factory::create()
+	options_country: Packetery\Options\Country
+	form_factory: Packetery\Form_Factory
