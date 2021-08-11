@@ -57,6 +57,7 @@ class Country {
 	 * Registers WP callbacks.
 	 */
 	public function register(): void {
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_submenu_page(
 			'packeta-options',
 			__( 'Countries', 'packetery' ),
@@ -86,7 +87,7 @@ class Country {
 		 * název dopravce - zobrazí se v košíku
 		 * dopravné zdarma od částky: - po překročení této částky je dopravné zdarma
 		 */
-		$form->setAction( '' );
+		$form->setAction( 'options.php' );
 
 		$container = $form->addContainer( 'packetery' );
 
@@ -96,17 +97,17 @@ class Country {
 		);
 
 		$container->addText( 'name', __( 'Display name', 'packetery' ) )
-				->setRequired()
-				->addRule( $form::MIN_LENGTH, __( 'Carrier display name must have at least 2 characters!', 'packetery' ), 2 );
+					->setRequired()
+					->addRule( $form::MIN_LENGTH, __( 'Carrier display name must have at least 2 characters!', 'packetery' ), 2 );
 
-		$weight_limits = $form->addContainer( 'packetery_weight_limits' );
+		$weight_limits = $container->addContainer( 'weight_limits' );
 		$wl0           = $weight_limits->addContainer( '0' );
-		$wl0->addInteger( 'weight', __( 'Weight up to', 'packetery' ) )
-				->setRequired();
+		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+			->setRequired();
 		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
-				->setRequired();
+			->setRequired();
 
-		$surcharge_limits = $form->addContainer( 'packetery_surcharge_limits' );
+		$surcharge_limits = $container->addContainer( 'surcharge_limits' );
 		$sl0              = $surcharge_limits->addContainer( '0' );
 		$sl0->addInteger( 'order_price', __( 'Order price up to', 'packetery' ) );
 		$sl0->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
@@ -120,14 +121,44 @@ class Country {
 			)
 		);
 
-		/*
-		TODO kvuli FormsReplicator
-		if ( $form->isSubmitted() ) {
-			$form->fireEvents();
-		}
-		*/
-
 		return $form;
+	}
+
+	/**
+	 *  Admin_init callback.
+	 */
+	public function admin_init(): void {
+		register_setting( 'packetery', 'packetery', array( $this, 'options_validate' ) );
+		add_settings_section( 'packetery_country', __( 'Country settings', 'packetery' ), '', 'packeta-country' );
+	}
+
+	/**
+	 * Validates options.
+	 *
+	 * @param array $options Packetery_options.
+	 *
+	 * @return array
+	 */
+	public function options_validate( $options ): array {
+		// TODO - jak rozchodit pro konkretniho dopravce?
+		$form = $this->create_form(
+			array(
+				'id'   => '106',
+				'name' => 'CZ Zásilkovna domů HD',
+			)
+		);
+		$form['packetery']->setValues( $options );
+		if ( $form->isValid() === false ) {
+			foreach ( $form['packetery']->getControls() as $control ) {
+				if ( $control->hasErrors() === false ) {
+					continue;
+				}
+
+				add_settings_error( $control->getCaption(), esc_attr( $control->getName() ), $control->getError() );
+				$options[ $control->getName() ] = '';
+			}
+		}
+		return $options;
 	}
 
 	/**
@@ -139,22 +170,20 @@ class Country {
 			$country_iso = sanitize_text_field( wp_unslash( $_GET['code'] ) );
 			// TODO: add PP for CZ?
 			$country_carriers = $this->carrier_repository->get_by_country( $country_iso );
-			if ( $country_carriers ) {
-				$carriers_data = array();
-				foreach ( $country_carriers as $carrier_data ) {
-					$carriers_data[] = array(
-						'form' => $this->create_form( $carrier_data ),
-						'data' => $carrier_data,
-					);
-				}
-				$this->latte_engine->render(
-					PACKETERY_PLUGIN_DIR . '/template/options/country.latte',
-					array(
-						'forms'       => $carriers_data,
-						'country_iso' => $country_iso,
-					)
+			$carriers_data    = array();
+			foreach ( $country_carriers as $carrier_data ) {
+				$carriers_data[] = array(
+					'form' => $this->create_form( $carrier_data ),
+					'data' => $carrier_data,
 				);
 			}
+			$this->latte_engine->render(
+				PACKETERY_PLUGIN_DIR . '/template/options/country.latte',
+				array(
+					'forms'       => $carriers_data,
+					'country_iso' => $country_iso,
+				)
+			);
 		} else {
 			// TODO: countries overview.
 		}

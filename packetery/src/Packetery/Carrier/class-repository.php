@@ -86,7 +86,7 @@ class Repository {
 	}
 
 	/**
-	 * Gets known carrier ids.
+	 * Gets all active carriers.
 	 *
 	 * @param string $country ISO code.
 	 *
@@ -95,7 +95,7 @@ class Repository {
 	public function get_by_country( string $country ): ?array {
 		$wpdb = $this->get_wpdb();
 
-		return $wpdb->get_results( $wpdb->prepare( 'SELECT `id`, `name` FROM `' . $wpdb->packetery_carrier . '` WHERE `country` = %s', $country ), ARRAY_A );
+		return $wpdb->get_results( $wpdb->prepare( 'SELECT `id`, `name` FROM `' . $wpdb->packetery_carrier . '` WHERE `country` = %s AND `deleted` = false', $country ), ARRAY_A );
 	}
 
 	/**

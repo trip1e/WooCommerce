@@ -3,9 +3,13 @@
 
 	{php settings_errors()}
 
-    {foreach $forms as $carrier_data}
-		{include 'carrier.latte', carrier_data: $carrier_data}
-	{/foreach}
+	{if $forms}
+		{foreach $forms as $carrier_data}
+			{include 'carrier.latte', carrier_data: $carrier_data}
+		{/foreach}
+	{else}
+		{__( 'No known carrier for this country.', 'packetery' )}
+	{/if}
 </div>
 <!-- todo include css -->
 <style>
