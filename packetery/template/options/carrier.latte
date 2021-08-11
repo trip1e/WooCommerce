@@ -3,24 +3,24 @@
 
 	{var $form = $carrier_data['form']}
 	<form n:name=$form>
-
-		{php settings_fields('packetery')}
+		{var $carrierId = $carrier_data['data']['id']}
+		{php settings_fields('packetery_carrier_' . $carrierId)}
 
 		<table class="form-table" role="presentation">
 			<tr>
 				<th scope="row">
-					<label n:name=packetery-active />
+					<label n:name=packetery_carrier_$carrierId-active />
 				</th>
 				<td>
-					<input n:name=packetery-active>
+					<input n:name=packetery_carrier_$carrierId-active>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row">
-					<label n:name=packetery-name />
+					<label n:name=packetery_carrier_$carrierId-name />
 				</th>
 				<td>
-					<input n:name=packetery-name>
+					<input n:name=packetery_carrier_$carrierId-name>
 				</td>
 			</tr>
 			<tr>
@@ -31,16 +31,16 @@
 					<table>
 						<tr>
 							<th scope="row">
-								<label n:name=packetery_weight_limits-0-weight />
+								<label n:name=packetery_carrier_$carrierId-weight_limits-0-weight />
 							</th>
 							<td>
-								<input n:name=packetery_weight_limits-0-weight>
+								<input n:name=packetery_carrier_$carrierId-weight_limits-0-weight>
 							</td>
 							<th scope="row">
-								<label n:name=packetery_weight_limits-0-price />
+								<label n:name=packetery_carrier_$carrierId-weight_limits-0-price />
 							</th>
 							<td>
-								<input n:name=packetery_weight_limits-0-price>
+								<input n:name=packetery_carrier_$carrierId-weight_limits-0-price>
 							</td>
 							<td>
 								<a href="">{__( 'Add weight rule', 'packetery' )}</a>
@@ -57,16 +57,16 @@
 					<table>
 						<tr>
 							<th scope="row">
-								<label n:name=packetery_surcharge_limits-0-order_price />
+								<label n:name=packetery_carrier_$carrierId-surcharge_limits-0-order_price />
 							</th>
 							<td>
-								<input n:name=packetery_surcharge_limits-0-order_price>
+								<input n:name=packetery_carrier_$carrierId-surcharge_limits-0-order_price>
 							</td>
 							<th scope="row">
-								<label n:name=packetery_surcharge_limits-0-surcharge />
+								<label n:name=packetery_carrier_$carrierId-surcharge_limits-0-surcharge />
 							</th>
 							<td>
-								<input n:name=packetery_surcharge_limits-0-surcharge>
+								<input n:name=packetery_carrier_$carrierId-surcharge_limits-0-surcharge>
 							</td>
 							<td>
 								<a href="">{__( 'Add COD surcharge rule', 'packetery' )}</a>
@@ -77,10 +77,10 @@
 			</tr>
 			<tr>
 				<th scope="row">
-					<label n:name=packetery-free_shipping_limit />
+					<label n:name=packetery_carrier_$carrierId-free_shipping_limit />
 				</th>
 				<td>
-					<input n:name=packetery-free_shipping_limit>
+					<input n:name=packetery_carrier_$carrierId-free_shipping_limit>
 					<p>
 						{__( 'After exceeding this amount, shipping is free.', 'packetery' )}
 					</p>

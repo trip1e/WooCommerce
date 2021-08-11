@@ -60,8 +60,8 @@ class Country {
 		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_submenu_page(
 			'packeta-options',
-			__( 'Countries', 'packetery' ),
-			__( 'Countries', 'packetery' ),
+			__( 'Carrier settings', 'packetery' ),
+			__( 'Carrier settings', 'packetery' ),
 			'manage_options',
 			'packeta-country',
 			array(
@@ -80,7 +80,7 @@ class Country {
 	 * @return \Nette\Forms\Form
 	 */
 	private function create_form( array $carrier_data ): \Nette\Forms\Form {
-		$form = $this->form_factory->create( 'carrier-' . $carrier_data['id'] );
+		$form = $this->form_factory->create( 'carrier_' . $carrier_data['id'] );
 		/**
 		 * TODO: Save. Later:
 		 * pokud je dopravce aktivní, nabízí se v košíku
@@ -89,8 +89,9 @@ class Country {
 		 */
 		$form->setAction( 'options.php' );
 
-		$container = $form->addContainer( 'packetery' );
+		$container = $form->addContainer( 'packetery_carrier_' . $carrier_data['id'] );
 
+		// todo: saves 'on' if checked
 		$container->addCheckbox(
 			'active',
 			__( 'Active carrier', 'packetery' )
@@ -128,36 +129,29 @@ class Country {
 	 *  Admin_init callback.
 	 */
 	public function admin_init(): void {
-		register_setting( 'packetery', 'packetery', array( $this, 'options_validate' ) );
-		add_settings_section( 'packetery_country', __( 'Country settings', 'packetery' ), '', 'packeta-country' );
+		// TODO: add PP for 'cz', 'sk', 'hu', 'ro' ?
+		$all_carriers = $this->carrier_repository->get_carrier_ids();
+		foreach ( $all_carriers as $carrier_data ) {
+			register_setting( 'packetery_carrier_' . $carrier_data['id'], 'packetery_carrier_' . $carrier_data['id'], array(
+				$this,
+				'options_validate'
+			) );
+		}
 	}
 
 	/**
 	 * Validates options.
 	 *
-	 * @param array $options Packetery_options.
+	 * @param array|null $options Packetery_options.
 	 *
 	 * @return array
 	 */
 	public function options_validate( $options ): array {
-		// TODO - jak rozchodit pro konkretniho dopravce?
-		$form = $this->create_form(
-			array(
-				'id'   => '106',
-				'name' => 'CZ Zásilkovna domů HD',
-			)
-		);
-		$form['packetery']->setValues( $options );
-		if ( $form->isValid() === false ) {
-			foreach ( $form['packetery']->getControls() as $control ) {
-				if ( $control->hasErrors() === false ) {
-					continue;
-				}
-
-				add_settings_error( $control->getCaption(), esc_attr( $control->getName() ), $control->getError() );
-				$options[ $control->getName() ] = '';
-			}
+		// TODO: rozchodit pro konkretniho dopravce podle odeslaneho id
+		if ( $options === null ) {
+			$options = [];
 		}
+
 		return $options;
 	}
 
@@ -165,10 +159,10 @@ class Country {
 	 *  Renders page.
 	 */
 	public function render(): void {
-		// todo Processing form data without nonce verification.
+		// TODO: fix Processing form data without nonce verification.
 		if ( isset( $_GET['code'] ) ) {
 			$country_iso = sanitize_text_field( wp_unslash( $_GET['code'] ) );
-			// TODO: add PP for CZ?
+			// TODO: add PP for 'cz', 'sk', 'hu', 'ro' ?
 			$country_carriers = $this->carrier_repository->get_by_country( $country_iso );
 			$carriers_data    = array();
 			foreach ( $country_carriers as $carrier_data ) {
