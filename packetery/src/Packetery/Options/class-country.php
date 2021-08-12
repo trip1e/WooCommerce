@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Packetery\Options;
 
+use Nette\Forms\Container;
 use Packetery\Carrier\Repository;
 use Packetery\Form_Factory;
 
@@ -94,6 +95,16 @@ class Country {
 		$container->addText( 'name', __( 'Display name', 'packetery' ) )
 					->setRequired()
 					->addRule( $form::MIN_LENGTH, __( 'Carrier display name must have at least 2 characters!', 'packetery' ), 2 );
+
+//      $container['weight_limit'] = new Multiplier(function() {
+//        $rule = new Container;
+//        $rule->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+//          ->setRequired();
+//        $rule->addInteger( 'price', __( 'Price', 'packetery' ) )
+//          ->setRequired();
+//
+//        return $rule;
+//      });
 
 		$weight_limits = $container->addContainer( 'weight_limits' );
 
