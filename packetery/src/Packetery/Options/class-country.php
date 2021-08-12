@@ -96,10 +96,28 @@ class Country {
 					->addRule( $form::MIN_LENGTH, __( 'Carrier display name must have at least 2 characters!', 'packetery' ), 2 );
 
 		$weight_limits = $container->addContainer( 'weight_limits' );
+
+		// todo: toto jsou jen dummy data - převést na Multiplier; tím se taky vyřeší, že se 0 teď zobrazuje 2x - normálně nebude v db id == 0
+
 		$wl0           = $weight_limits->addContainer( '0' );
 		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
 			->setRequired();
 		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
+			->setRequired();
+
+		$wl0           = $weight_limits->addContainer( '123' );
+		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+          ->setDefaultValue('123')
+			->setRequired();
+		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
+			->setRequired();
+
+		$wl0           = $weight_limits->addContainer( '465' );
+		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+          ->setDefaultValue('465')
+			->setRequired();
+		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
+          ->setDefaultValue('4655')
 			->setRequired();
 
 		$surcharge_limits = $container->addContainer( 'surcharge_limits' );

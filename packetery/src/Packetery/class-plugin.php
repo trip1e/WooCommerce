@@ -126,6 +126,7 @@ class Plugin {
 	 */
 	public function admin_enqueue_scripts(): void {
 		wp_enqueue_script( 'live-form-validation', plugin_dir_url( $this->main_file_path ) . 'public/libs/live-form-validation/live-form-validation.js', array(), '2.0-dev', false );
+		wp_enqueue_script( 'admin-country-carrier', plugin_dir_url( $this->main_file_path ) . 'public/admin-country-carrier.js', array(), '1.0', true );
 	}
 
 	/**
