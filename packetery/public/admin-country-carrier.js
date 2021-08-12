@@ -6,6 +6,7 @@
             return;
         }
 
+        // todo fix live validation for newly added options
 
         var Multiplier = function ()
         {
@@ -13,7 +14,7 @@
                 var $wrappers = $(wrapperSelector);
                 $wrappers
                     .on('click', '.js-add', function () {
-                        multiplier.addOption(this, $wrappers);
+                        multiplier.addOption(this, $wrappers); // todo use wrapperSelector instead
                     })
                     .on('click', '.js-delete', function () {
                         multiplier.deleteOption(this);
@@ -85,6 +86,8 @@
 
                     updateId($element, 'name', id);
                     updateId($element, 'data-lfv-message-id', id);
+
+                    // todo replace -0- in label/for and in id=""
                 });
             }
 
