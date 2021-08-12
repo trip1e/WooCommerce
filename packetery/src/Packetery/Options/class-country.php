@@ -80,18 +80,12 @@ class Country {
 	 * @return \Nette\Forms\Form
 	 */
 	private function create_form( array $carrier_data ): \Nette\Forms\Form {
-		$form = $this->form_factory->create( 'carrier_' . $carrier_data['id'] );
-		/**
-		 * TODO: Save. Later:
-		 * pokud je dopravce aktivní, nabízí se v košíku
-		 * název dopravce - zobrazí se v košíku
-		 * dopravné zdarma od částky: - po překročení této částky je dopravné zdarma
-		 */
+		$optionId = 'packetery_carrier_' . $carrier_data['id'];
+		$form = $this->form_factory->create( $optionId );
 		$form->setAction( 'options.php' );
 
-		$container = $form->addContainer( 'packetery_carrier_' . $carrier_data['id'] );
+		$container = $form->addContainer( $optionId );
 
-		// todo: saves 'on' if checked
 		$container->addCheckbox(
 			'active',
 			__( 'Active carrier', 'packetery' )
@@ -114,13 +108,15 @@ class Country {
 		$sl0->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
 
 		$container->addInteger( 'free_shipping_limit', __( 'Free shipping limit', 'packetery' ) );
+		$container->addHidden('id');
 
-		// todo load saved data.
-		$container->setDefaults(
-			array(
-				'name' => $carrier_data['name'],
-			)
-		);
+		$carrierOptions = get_option( $optionId );
+		$carrierOptions['id'] = $carrier_data['id'];
+		if ( empty( $carrierOptions['name'] ) ) {
+			$carrierOptions['name'] = $carrier_data['name'];
+		}
+		$container->setDefaults( $carrierOptions );
+
 
 		return $form;
 	}
@@ -142,14 +138,24 @@ class Country {
 	/**
 	 * Validates options.
 	 *
-	 * @param array|null $options Packetery_options.
+	 * @param array $options Packetery_options.
 	 *
 	 * @return array
 	 */
-	public function options_validate( $options ): array {
-		// TODO: rozchodit pro konkretniho dopravce podle odeslaneho id
-		if ( $options === null ) {
-			$options = [];
+	public function options_validate( array $options ): array {
+		if ( ! empty( $options['id'] ) ) {
+			$form     = $this->create_form( $options );
+			$optionId = 'packetery_carrier_' . $options['id'];
+			$form[ $optionId ]->setValues( $options );
+			if ( $form->isValid() === false ) {
+				foreach ( $form[ $optionId ]->getControls() as $control ) {
+					if ( $control->hasErrors() === false ) {
+						continue;
+					}
+					add_settings_error( $control->getCaption(), esc_attr( $control->getName() ), $control->getError() );
+					$options[ $control->getName() ] = '';
+				}
+			}
 		}
 
 		return $options;
