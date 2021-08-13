@@ -6,8 +6,6 @@
             return;
         }
 
-        // todo fix live validation for newly added options
-
         var Multiplier = function ()
         {
             this.registerListeners = function (wrapperSelector) {
@@ -21,10 +19,10 @@
                     })
                     .each(function () {
                         var $wrapper = $(this);
-                        $wrapper.find('.js-add').trigger('click');  // add the first option
+                        // todo pridat jen pokud je posledni polozka vyplnena
+                        //$wrapper.find('.js-add').trigger('click');  // add the first option
                         multiplier.toggleDeleteButton($wrapper);
                     });
-
             };
 
             this.addOption = function (button, $wrappers) {
@@ -34,7 +32,8 @@
 
                 updateIds($template, newId++);
                 $wrapper.find('table').append($template);
-                $('input', $template).eq(0).focus();
+                // todo nedelat focus, pokud je volano automaticky
+                //$('input', $template).eq(0).focus();
                 this.toggleDeleteButton($wrapper);
             };
 
@@ -47,7 +46,7 @@
             };
 
             this.toggleDeleteButton = function ($wrapper) {
-                var optionsCount = $wrapper.find('tr:not(.js-template)').length,
+                var optionsCount = $wrapper.find('tr').length,
                     $buttons = $wrapper.find('button.js-delete');
 
                 (optionsCount > 1) ? $buttons.show() : $buttons.hide();
@@ -74,31 +73,36 @@
 
 
             function getTemplate($wrapper) {
-                return $wrapper.find('.js-template').clone().removeClass('js-template');
+                var $template = $wrapper.find('.js-template').clone().removeClass('js-template');
+                $template.find('input').val('').removeAttr('required');
+                return $template;
             }
 
             /**
              * Update references to element names to make them unique; the value itself doesn't matter: [0] -> [new_234]
              */
             function updateIds($html, id) {
-                $('input, select', $html).each(function (i, element) {
+                $('input, select, label, span', $html).each(function (i, element) {
                     var $element = $(element);
 
                     updateId($element, 'name', id);
-                    updateId($element, 'data-lfv-message-id', id);
-
-                    // todo replace -0- in label/for and in id=""
+                    updateId($element, 'data-lfv-message-id', id, ['-', '-']);
+                    updateId($element, 'for', id, ['-', '-']);
+                    updateId($element, 'id', id, ['-', '-']);
                 });
             }
 
-            function updateId($element, attrName, id) {
+            function updateId($element, attrName, id, delimiters) {
                 var value = $element.attr(attrName);
                 if (!value) {
                     return;
                 }
+                if (typeof delimiters === 'undefined') {
+                    delimiters = ['[', ']'];
+                }
 
                 // don't use data() because we want the raw values, not parsed json arrays/objects
-                $element.attr(attrName, value.replace('[0]', '[' + prefix + id + ']'));
+                $element.attr(attrName, value.replace(delimiters[0] + '0' + delimiters[1], delimiters[0] + prefix + id + delimiters[1]));
             }
 
         };

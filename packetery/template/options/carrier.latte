@@ -1,10 +1,3 @@
-<style>
-	.js-weight-rules .js-template,
-	.js-surcharge-rules .js-template{
-		display: none;
-	}
-</style>
-
 <div class="packetery-carrier-options-page">
 	<h2>{$carrier_data['data']['name']}</h2>
 
@@ -58,9 +51,8 @@
 
 						{var $container = $form['packetery_carrier_' . $carrierId]['weight_limits']}
 						{foreach $container->getComponents() as $weightId => $tmp}
-							{include weightRules id => $weightId, container => $container}
+							{include weightRules id => $weightId, container => $container, class => ($weightId == 0 ? 'js-template' : '')}
 						{/foreach}
-						{include weightRules id => 0, container => $container, class => 'js-template'}
 					</table>
 
 					<button type="button" class="js-add">{__( 'Add weight rule', 'packetery' )}</button>
@@ -94,9 +86,8 @@
 
 						{var $container = $form['packetery_carrier_' . $carrierId]['surcharge_limits']}
 						{foreach $container->getComponents() as $surchargeId => $tmp}
-							{include surchargeRules id => $surchargeId, container => $container}
+							{include surchargeRules id => $surchargeId, container => $container, class => ($surchargeId == 0 ? 'js-template' : '')}
 						{/foreach}
-						{include surchargeRules id => 0, container => $container, class => 'js-template'}
 					</table>
 
 					<button type="button" class="js-add">{__( 'Add COD surcharge rule', 'packetery' )}</button>

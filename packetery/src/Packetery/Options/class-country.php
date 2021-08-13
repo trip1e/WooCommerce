@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace Packetery\Options;
 
+// todo remove unused
+use Nette\Application\UI\Multiplier;
 use Nette\Forms\Container;
 use Packetery\Carrier\Repository;
 use Packetery\Form_Factory;
@@ -96,45 +98,66 @@ class Country {
 					->setRequired()
 					->addRule( $form::MIN_LENGTH, __( 'Carrier display name must have at least 2 characters!', 'packetery' ), 2 );
 
-//      $container['weight_limit'] = new Multiplier(function() {
-//        $rule = new Container;
-//        $rule->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-//          ->setRequired();
-//        $rule->addInteger( 'price', __( 'Price', 'packetery' ) )
-//          ->setRequired();
-//
-//        return $rule;
-//      });
+		/*
+		$container['weight_limits'] = new Multiplier( function () {
+			$rule = new Container;
+			$rule->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+				->setRequired();
+			$rule->addInteger( 'price', __( 'Price', 'packetery' ) )
+				->setRequired();
+
+			return $rule;
+		} );
+		$container['surcharge_limits'] = new Multiplier( function () {
+			$rule = new Container;
+			$rule->addInteger( 'order_price', __( 'Order price up to', 'packetery' ) );
+			$rule->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
+
+			return $rule;
+		} );
+		*/
 
 		$weight_limits = $container->addContainer( 'weight_limits' );
+		$weight_limits_count = 0;
+		if(isset($carrier_data['weight_limits'])) {
+			$weight_limits_count = count( $carrier_data['weight_limits'] );
+		}
+		for ( $i = 0; $i <= $weight_limits_count; $i ++ ) {
+			$limit = $weight_limits->addContainer( (string) $i );
+			$item  = $limit->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) );
+			if ( $i === 0 ) {
+				$item->setRequired();
+			}
+			$item = $limit->addInteger( 'price', __( 'Price', 'packetery' ) );
+			if ( $i === 0 ) {
+				$item->setRequired();
+			}
+		}
 
-		// todo: toto jsou jen dummy data - převést na Multiplier; tím se taky vyřeší, že se 0 teď zobrazuje 2x - normálně nebude v db id == 0
+		/*
+				$wl0           = $weight_limits->addContainer( '123' );
+				$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+				  ->setDefaultValue('123');
+				$wl0->addInteger( 'price', __( 'Price', 'packetery' ) );
 
-		$wl0           = $weight_limits->addContainer( '0' );
-		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-			->setRequired();
-		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
-			->setRequired();
-
-		$wl0           = $weight_limits->addContainer( '123' );
-		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-          ->setDefaultValue('123')
-			->setRequired();
-		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
-			->setRequired();
-
-		$wl0           = $weight_limits->addContainer( '465' );
-		$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-          ->setDefaultValue('465')
-			->setRequired();
-		$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
-          ->setDefaultValue('4655')
-			->setRequired();
+				$wl0           = $weight_limits->addContainer( '465' );
+				$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
+				  ->setDefaultValue('465');
+				$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
+				  ->setDefaultValue('4655');
+		*/
 
 		$surcharge_limits = $container->addContainer( 'surcharge_limits' );
-		$sl0              = $surcharge_limits->addContainer( '0' );
-		$sl0->addInteger( 'order_price', __( 'Order price up to', 'packetery' ) );
-		$sl0->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
+		$surcharge_limits_count = 0;
+		if ( isset( $carrier_data['surcharge_limits'] ) ) {
+			$surcharge_limits_count = count( $carrier_data['surcharge_limits'] );
+		}
+		for ( $i = 0; $i <= $surcharge_limits_count; $i ++ ) {
+			$limit = $surcharge_limits->addContainer( (string) $i );
+			$limit->addInteger( 'order_price', __( 'Order price up to', 'packetery' ) );
+			$limit->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
+		}
+
 
 		$container->addInteger( 'free_shipping_limit', __( 'Free shipping limit', 'packetery' ) );
 		$container->addHidden('id');
@@ -145,7 +168,6 @@ class Country {
 			$carrierOptions['name'] = $carrier_data['name'];
 		}
 		$container->setDefaults( $carrierOptions );
-
 
 		return $form;
 	}
@@ -172,7 +194,11 @@ class Country {
 	 * @return array
 	 */
 	public function options_validate( array $options ): array {
+		// todo TYTO NOVE HODNOTY SE NEULOZI - use \Nette\Http\Request:: ?
 		if ( ! empty( $options['id'] ) ) {
+			$options = $this->mergeNewOptions( $options , 'weight_limits');
+			$options = $this->mergeNewOptions( $options , 'surcharge_limits');
+
 			$form     = $this->create_form( $options );
 			$optionId = 'packetery_carrier_' . $options['id'];
 			$form[ $optionId ]->setValues( $options );
@@ -194,7 +220,18 @@ class Country {
 	 *  Renders page.
 	 */
 	public function render(): void {
-		// TODO: fix Processing form data without nonce verification.
+		// TODO: Processing form data without nonce verification. - fix in PES-263
+		/*
+		if (
+			! isset( $_GET['_wpnonce'] ) ||
+			! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'packetery_country' )
+		) {
+			wp_nonce_ays( '' );
+
+			return;
+		}
+		*/
+
 		if ( isset( $_GET['code'] ) ) {
 			$country_iso = sanitize_text_field( wp_unslash( $_GET['code'] ) );
 			// TODO: add PP for 'cz', 'sk', 'hu', 'ro' ?
@@ -216,6 +253,31 @@ class Country {
 		} else {
 			// TODO: countries overview.
 		}
+	}
+
+	/**
+	 * Transforms new_ keys to common numeric.
+	 *
+	 * @param array $options
+	 * @param string $options_key
+	 *
+	 * @return array
+	 */
+	private function mergeNewOptions( array $options, string $options_key ): array {
+		$new_options = [];
+		if ( isset( $options[ $options_key ] ) ) {
+			foreach ( $options[ $options_key ] as $key => $option ) {
+				if ( is_int( $key ) ) {
+					$new_options[ $key ] = $option;
+				}
+				if ( 0 === strpos( (string) $key, 'new_' ) ) {
+					$new_options[] = $option;
+				}
+			}
+			$options[ $options_key ] = $new_options;
+		}
+
+		return $options;
 	}
 
 }
