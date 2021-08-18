@@ -6,8 +6,7 @@
             return;
         }
 
-        var Multiplier = function ()
-        {
+        var Multiplier = function () {
             this.registerListeners = function (wrapperSelector) {
                 var $wrappers = $(wrapperSelector);
                 $wrappers
@@ -19,21 +18,28 @@
                     })
                     .each(function () {
                         var $wrapper = $(this);
-                        // todo pridat jen pokud je posledni polozka vyplnena
-                        //$wrapper.find('.js-add').trigger('click');  // add the first option
+                        var $inputs = $wrapper.find('input[type="number"]');
+                        // add only if there is something in last row
+                        if ($inputs.eq(-2).val() || $inputs.eq(-1).val()) {
+                            multiplier.addOption($wrapper.find('.js-add'), $wrapper, false);
+                        }
                         multiplier.toggleDeleteButton($wrapper);
                     });
             };
 
-            this.addOption = function (button, $wrappers) {
+            this.addOption = function (button, $wrappers, setFocus) {
                 var wrapperClassName = $wrappers.first().attr('class'),
                     $wrapper = $(button).closest('.' + wrapperClassName),
                     $template = getTemplate($wrapper);
 
                 updateIds($template, newId++);
                 $wrapper.find('table').append($template);
-                // todo nedelat focus, pokud je volano automaticky
-                //$('input', $template).eq(0).focus();
+                if (typeof setFocus === 'undefined') {
+                    setFocus = true;
+                }
+                if (setFocus) {
+                    $('input', $template).eq(0).focus();
+                }
                 this.toggleDeleteButton($wrapper);
             };
 
@@ -59,7 +65,7 @@
                 var $newInputs = $('[name*=' + prefix + ']'),
                     maxNewId = 1;
 
-                $newInputs.each(function() {
+                $newInputs.each(function () {
                     var newIdMatch = $(this).attr('name').match('\\[' + prefix + '(\\d+)\\]');
                     var counter = parseInt(newIdMatch[1]);
                     maxNewId = Math.max(maxNewId, counter + 1);
@@ -71,10 +77,9 @@
             var prefix = 'new_',
                 newId = findMaxNewId();
 
-
             function getTemplate($wrapper) {
                 var $template = $wrapper.find('.js-template').clone().removeClass('js-template');
-                $template.find('input').val('').removeAttr('required');
+                $template.find('input').val('').removeAttr('required').removeAttr('data-nette-rules');
                 return $template;
             }
 

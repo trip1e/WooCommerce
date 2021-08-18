@@ -9,9 +9,6 @@ declare( strict_types=1 );
 
 namespace Packetery\Options;
 
-// todo remove unused
-use Nette\Application\UI\Multiplier;
-use Nette\Forms\Container;
 use Packetery\Carrier\Repository;
 use Packetery\Form_Factory;
 
@@ -44,6 +41,13 @@ class Country {
 	private $form_factory;
 
 	/**
+	 * Internal pickup points.
+	 *
+	 * @var string[] Internal pickup points.
+	 */
+	private $zpointCarriers;
+
+	/**
 	 * Plugin constructor.
 	 *
 	 * @param \Latte\Engine $latte_engine Latte_engine.
@@ -54,13 +58,30 @@ class Country {
 		$this->latte_engine       = $latte_engine;
 		$this->carrier_repository = $carrier_repository;
 		$this->form_factory       = $form_factory;
+		$this->zpointCarriers = [
+			'cz' => [
+				'id'   => 'zpointcz',
+				'name' => __( 'CZ Zásilkovna výdejní místa', 'packetery' ),
+			],
+			'sk' => [
+				'id'   => 'zpointsk',
+				'name' => __( 'SK Zásilkovna výdejní místa', 'packetery' ),
+			],
+			'hu' => [
+				'id'   => 'zpointhu',
+				'name' => __( 'HU Zásilkovna výdejní místa', 'packetery' ),
+			],
+			'ro' => [
+				'id'   => 'zpointro',
+				'name' => __( 'RO Zásilkovna výdejní místa', 'packetery' ),
+			],
+		];
 	}
 
 	/**
 	 * Registers WP callbacks.
 	 */
 	public function register(): void {
-		add_action( 'admin_init', array( $this, 'admin_init' ) );
 		add_submenu_page(
 			'packeta-options',
 			__( 'Carrier settings', 'packetery' ),
@@ -84,8 +105,9 @@ class Country {
 	 */
 	private function create_form( array $carrier_data ): \Nette\Forms\Form {
 		$optionId = 'packetery_carrier_' . $carrier_data['id'];
-		$form = $this->form_factory->create( $optionId );
-		$form->setAction( 'options.php' );
+		$form     = $this->form_factory->create( $optionId );
+		global $wp;
+		$form->setAction( add_query_arg( $wp->query_vars, '' ) );
 
 		$container = $form->addContainer( $optionId );
 
@@ -98,28 +120,9 @@ class Country {
 					->setRequired()
 					->addRule( $form::MIN_LENGTH, __( 'Carrier display name must have at least 2 characters!', 'packetery' ), 2 );
 
-		/*
-		$container['weight_limits'] = new Multiplier( function () {
-			$rule = new Container;
-			$rule->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-				->setRequired();
-			$rule->addInteger( 'price', __( 'Price', 'packetery' ) )
-				->setRequired();
-
-			return $rule;
-		} );
-		$container['surcharge_limits'] = new Multiplier( function () {
-			$rule = new Container;
-			$rule->addInteger( 'order_price', __( 'Order price up to', 'packetery' ) );
-			$rule->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
-
-			return $rule;
-		} );
-		*/
-
-		$weight_limits = $container->addContainer( 'weight_limits' );
+		$weight_limits       = $container->addContainer( 'weight_limits' );
 		$weight_limits_count = 0;
-		if(isset($carrier_data['weight_limits'])) {
+		if ( isset( $carrier_data['weight_limits'] ) ) {
 			$weight_limits_count = count( $carrier_data['weight_limits'] );
 		}
 		for ( $i = 0; $i <= $weight_limits_count; $i ++ ) {
@@ -134,20 +137,7 @@ class Country {
 			}
 		}
 
-		/*
-				$wl0           = $weight_limits->addContainer( '123' );
-				$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-				  ->setDefaultValue('123');
-				$wl0->addInteger( 'price', __( 'Price', 'packetery' ) );
-
-				$wl0           = $weight_limits->addContainer( '465' );
-				$wl0->addInteger( 'weight', __( 'Weight up to (kg)', 'packetery' ) )
-				  ->setDefaultValue('465');
-				$wl0->addInteger( 'price', __( 'Price', 'packetery' ) )
-				  ->setDefaultValue('4655');
-		*/
-
-		$surcharge_limits = $container->addContainer( 'surcharge_limits' );
+		$surcharge_limits       = $container->addContainer( 'surcharge_limits' );
 		$surcharge_limits_count = 0;
 		if ( isset( $carrier_data['surcharge_limits'] ) ) {
 			$surcharge_limits_count = count( $carrier_data['surcharge_limits'] );
@@ -158,11 +148,10 @@ class Country {
 			$limit->addInteger( 'surcharge', __( 'Surcharge', 'packetery' ) );
 		}
 
-
 		$container->addInteger( 'free_shipping_limit', __( 'Free shipping limit', 'packetery' ) );
-		$container->addHidden('id');
+		$container->addHidden( 'id' );
 
-		$carrierOptions = get_option( $optionId );
+		$carrierOptions       = get_option( $optionId );
 		$carrierOptions['id'] = $carrier_data['id'];
 		if ( empty( $carrierOptions['name'] ) ) {
 			$carrierOptions['name'] = $carrier_data['name'];
@@ -173,20 +162,6 @@ class Country {
 	}
 
 	/**
-	 *  Admin_init callback.
-	 */
-	public function admin_init(): void {
-		// TODO: add PP for 'cz', 'sk', 'hu', 'ro' ?
-		$all_carriers = $this->carrier_repository->get_carrier_ids();
-		foreach ( $all_carriers as $carrier_data ) {
-			register_setting( 'packetery_carrier_' . $carrier_data['id'], 'packetery_carrier_' . $carrier_data['id'], array(
-				$this,
-				'options_validate'
-			) );
-		}
-	}
-
-	/**
 	 * Validates options.
 	 *
 	 * @param array $options Packetery_options.
@@ -194,10 +169,9 @@ class Country {
 	 * @return array
 	 */
 	public function options_validate( array $options ): array {
-		// todo TYTO NOVE HODNOTY SE NEULOZI - use \Nette\Http\Request:: ?
 		if ( ! empty( $options['id'] ) ) {
-			$options = $this->mergeNewOptions( $options , 'weight_limits');
-			$options = $this->mergeNewOptions( $options , 'surcharge_limits');
+			$options = $this->mergeNewOptions( $options, 'weight_limits' );
+			$options = $this->mergeNewOptions( $options, 'surcharge_limits' );
 
 			$form     = $this->create_form( $options );
 			$optionId = 'packetery_carrier_' . $options['id'];
@@ -214,6 +188,20 @@ class Country {
 		}
 
 		return $options;
+	}
+
+	public function process_form( ) {
+		$factory = new \Nette\Http\RequestFactory;
+		$request = $factory->fromGlobals();
+
+		$post = $request->getPost();
+		if ( $post ) {
+			$options = $this->options_validate( $post[ $post['option_page'] ] );
+			if ( ! get_settings_errors() ) {
+				$optionId = 'packetery_carrier_' . $options['id'];
+				update_option( $optionId, $options );
+			}
+		}
 	}
 
 	/**
@@ -233,11 +221,22 @@ class Country {
 		*/
 
 		if ( isset( $_GET['code'] ) ) {
+			$this->process_form();
+
 			$country_iso = sanitize_text_field( wp_unslash( $_GET['code'] ) );
-			// TODO: add PP for 'cz', 'sk', 'hu', 'ro' ?
 			$country_carriers = $this->carrier_repository->get_by_country( $country_iso );
+			// Add PP for 'cz', 'sk', 'hu', 'ro'.
+			if ( ! empty( $this->zpointCarriers[ $country_iso ] ) ) {
+				array_unshift( $country_carriers, $this->zpointCarriers[ $country_iso ] );
+			}
+
 			$carriers_data    = array();
 			foreach ( $country_carriers as $carrier_data ) {
+				$optionId = 'packetery_carrier_' . $carrier_data['id'];
+				$options  = get_option( $optionId );
+				if ( $options !== false ) {
+					$carrier_data += $options;
+				}
 				$carriers_data[] = array(
 					'form' => $this->create_form( $carrier_data ),
 					'data' => $carrier_data,
@@ -258,20 +257,23 @@ class Country {
 	/**
 	 * Transforms new_ keys to common numeric.
 	 *
-	 * @param array $options
+	 * @param array  $options
 	 * @param string $options_key
 	 *
 	 * @return array
 	 */
 	private function mergeNewOptions( array $options, string $options_key ): array {
-		$new_options = [];
+		$new_options = array();
 		if ( isset( $options[ $options_key ] ) ) {
 			foreach ( $options[ $options_key ] as $key => $option ) {
-				if ( is_int( $key ) ) {
-					$new_options[ $key ] = $option;
-				}
-				if ( 0 === strpos( (string) $key, 'new_' ) ) {
-					$new_options[] = $option;
+				$keys = array_keys( $option );
+				if ( $option[ $keys[0] ] && $option[ $keys[1] ] ) {
+					if ( is_int( $key ) ) {
+						$new_options[ $key ] = $option;
+					}
+					if ( 0 === strpos( (string) $key, 'new_' ) ) {
+						$new_options[] = $option;
+					}
 				}
 			}
 			$options[ $options_key ] = $new_options;
